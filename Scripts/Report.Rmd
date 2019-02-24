@@ -1,0 +1,45 @@
+---
+title: "Kaggle Titanic Project"
+author: "Palash Jain"
+date: "2/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,message = F,warning = F,cache = T)
+options(scipen = 999)
+library(data.table)
+library(rpart)
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(knitr)
+library(kableExtra)
+library(ggthemes)
+library(party)
+```
+
+```{R}
+loaddata <- function(x){
+  data <- fread(x)
+  data$fam_mem <- data$SibSp + data$Parch + 1
+  data$child <- ifelse(data$Age < 8,1,0)
+  data$Sex <- ifelse(data$Sex == 'male',1,0)
+  data$Survived <- as.factor(data$Survived)
+  return(data)
+}
+
+test <- loaddata('../Data/test.csv')
+train <- loaddata('../Data/train.csv')
+kable(head(train)) %>%
+  kable_styling(c('striped','bordered'),font_size = 6)
+```
+
+
+```{R,fig.height=10}
+model1 <- ctree(Survived~Age + Sex + fam_mem,data=train)
+plot(model1,uniform=TRUE)
+train$pred_survival<-predict(model1,train[,c('Age','Sex','fam_mem')])
+confusionMatrix(train$Survived,train$pred_survival)
+```
